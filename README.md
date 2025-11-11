@@ -28,13 +28,7 @@ uv sync
 
 ### 2. Configure Environment Variables
 
-Copy `.env.local.example` to `.env.local` and fill in your credentials:
-
-```bash
-cp .env.local.example .env.local
-```
-
-Edit `.env.local` with your credentials:
+Edit `.env` with your credentials:
 
 - `LIVEKIT_URL`: Your LiveKit WebSocket URL (e.g., `wss://your-project.livekit.cloud`)
 - `LIVEKIT_API_KEY`: Your LiveKit API key
@@ -49,7 +43,7 @@ Edit `.env.local` with your credentials:
 lk sip outbound list
 ```
 
-Copy the trunk ID (e.g., `ST_xxxx`) to your `.env.local` file.
+Copy the trunk ID (e.g., `ST_xxxx`) to your `.env` file.
 
 ## Running the Agent
 

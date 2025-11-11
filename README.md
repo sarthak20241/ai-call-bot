@@ -192,27 +192,7 @@ The agent uses Gemini Live API (`gemini-2.0-flash-exp`) for direct speech-to-spe
 - Natural, low-latency conversation
 - Voice: "Puck" (can be changed in `agent.py`)
 
-## Troubleshooting
 
-### Agent Not Joining Room
-
-- Ensure agent is running (`uv run agent.py dev`)
-- Check that `agent_name` matches in both `agent.py` and `server.py`
-- Verify LiveKit credentials are correct
-
-### Call Not Connecting
-
-- Verify SIP trunk is configured correctly
-- Check that `SIP_TRUNK_ID` is correct (use `lk sip outbound list`)
-- Ensure `SIP_NUMBER` (caller ID) is set and is a valid Twilio DID or verified caller ID
-- Ensure Twilio SIP trunk is configured to route to LiveKit
-- Check Twilio console to verify your phone number is active and caller ID is verified
-
-### API Errors
-
-- Check that LiveKit credentials are set in `.env.local`
-- Verify API server is running
-- Check logs for detailed error messages
 
 ## License
 

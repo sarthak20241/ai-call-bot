@@ -1,93 +1,130 @@
-# LiveKit Twilio Outbound Caller with Gemini AI Agent
+# AI-Powered Outbound Calling System
 
-An outbound calling system that uses LiveKit Agents to make phone calls via Twilio SIP trunk, with Gemini Live API for realtime speech-to-speech conversation.
+A production-ready outbound calling system that leverages LiveKit Agents, Twilio SIP trunking, and Google Gemini Live API to enable real-time AI-powered phone conversations. The system provides a RESTful API for initiating calls and managing call lifecycles with natural speech-to-speech interaction.
 
-## Features
+## 🚀 Key Features
 
-- **Outbound Calling**: Make phone calls using LiveKit SIP integration with Twilio
-- **Gemini AI Agent**: Uses Gemini Live API for natural speech-to-speech conversation
-- **REST API**: Simple REST API to trigger calls and manage call lifecycle
-- **Initial Greeting**: AI agent greets the caller immediately after the call is answered
-- **Call Management**: Track call status and hang up calls via API
+- **Real-time Speech-to-Speech AI**: Powered by Google Gemini Live API for natural, low-latency conversations
+- **Telephony Integration**: Seamless integration with Twilio via LiveKit SIP trunking
+- **RESTful API**: Clean REST API for call management and monitoring
+- **Production-Ready**: Error handling, call status tracking, and graceful shutdown
+- **Noise Cancellation**: Built-in telephony-optimized noise cancellation for crystal-clear audio
 
-## Prerequisites
+## 🏗️ Architecture
+
+The system consists of three main components:
+
+1. **AI Agent** (`agent.py`): LiveKit agent using Gemini Live API for speech-to-speech conversation
+2. **API Server** (`server.py`): FastAPI-based REST API for call orchestration
+3. **SIP Integration**: Twilio SIP trunk configured for outbound calling
+
+### System Flow
+
+```
+API Request → Agent Dispatch → SIP Call Initiation → Gemini AI Conversation
+```
+
+1. REST API receives call request with phone number
+2. LiveKit creates room and dispatches AI agent
+3. Agent initiates SIP call via Twilio trunk
+4. Upon answer, Gemini Live API handles real-time conversation
+5. Agent greets caller and maintains natural dialogue
+
+## 🛠️ Technology Stack
+
+- **Python 3.9+**: Core language
+- **LiveKit Agents**: Voice AI framework
+- **Google Gemini Live API**: Speech-to-speech AI model
+- **FastAPI**: REST API framework
+- **Twilio**: SIP trunking provider
+- **LiveKit Cloud**: Real-time media infrastructure
+
+## 📋 Prerequisites
 
 - Python >= 3.9
-- LiveKit Cloud account (or self-hosted LiveKit server)
+- LiveKit Cloud account
 - Google Gemini API key
-- LiveKit outbound SIP trunk configured with Twilio
-- Twilio account with SIP trunking enabled
+- Twilio account with SIP trunking
+- LiveKit outbound SIP trunk configured
 
-## Setup
+## ⚙️ Installation
 
-### 1. Install Dependencies
+### 1. Clone and Install Dependencies
 
 ```bash
+git clone <repository-url>
+cd ai-call
 uv sync
 ```
 
-### 2. Configure Environment Variables
+### 2. Environment Configuration
 
-Edit `.env` with your credentials:
+Create a `.env` file with the following variables:
 
-- `LIVEKIT_URL`: Your LiveKit WebSocket URL (e.g., `wss://your-project.livekit.cloud`)
-- `LIVEKIT_API_KEY`: Your LiveKit API key
-- `LIVEKIT_API_SECRET`: Your LiveKit API secret
-- `GOOGLE_API_KEY`: Your Google Gemini API key
-- `SIP_TRUNK_ID`: Your LiveKit outbound trunk ID (get from `lk sip outbound list`)
-- `SIP_NUMBER`: Your caller ID (must be a valid Twilio phone number/DID or verified caller ID)
+```env
+LIVEKIT_URL=wss://your-project.livekit.cloud
+LIVEKIT_API_KEY=your-api-key
+LIVEKIT_API_SECRET=your-api-secret
+GOOGLE_API_KEY=your-google-api-key
+SIP_TRUNK_ID=ST_xxxx
+SIP_NUMBER=+1234567890
+```
 
-### 3. Get Your SIP Trunk ID
-
+Get your SIP trunk ID:
 ```bash
 lk sip outbound list
 ```
 
-Copy the trunk ID (e.g., `ST_xxxx`) to your `.env` file.
+## 🚦 Usage
 
-## Running the Agent
-
-### Development Mode
-
-Start the agent in development mode:
+### Start the AI Agent
 
 ```bash
 uv run agent.py dev
 ```
 
-The agent will connect to LiveKit and wait for dispatch requests.
-
-### Production Mode
-
-Start the agent in production mode:
-
-```bash
-uv run agent.py start
-```
-
-## Running the API Server
-
-Start the FastAPI server:
+### Start the API Server
 
 ```bash
 uv run uvicorn server:app --reload --port 8000
 ```
 
-The API will be available at `http://localhost:8000`
+### Make an Outbound Call
 
-## API Endpoints
+```bash
+curl -X POST "http://localhost:8000/call" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone_number": "+1234567890",
+    "sip_number": "+15555551234"
+  }'
+```
+
+### Check Call Status
+
+```bash
+curl "http://localhost:8000/call/{room_name}/status"
+```
+
+### Hang Up Call
+
+```bash
+curl -X POST "http://localhost:8000/call/{room_name}/hangup"
+```
+
+## 📡 API Reference
 
 ### POST /call
 
-Trigger an outbound call.
+Initiates an outbound call.
 
-**Request Body:**
+**Request:**
 ```json
 {
   "phone_number": "+1234567890",
-  "agent_instructions": "Optional: Custom instructions for the agent",
-  "sip_trunk_id": "Optional: Override default SIP trunk ID",
-  "sip_number": "Optional: Caller ID (must be a valid Twilio DID or verified caller ID)"
+  "agent_instructions": "Optional custom instructions",
+  "sip_trunk_id": "Optional trunk override",
+  "sip_number": "Optional caller ID override"
 }
 ```
 
@@ -102,7 +139,7 @@ Trigger an outbound call.
 
 ### GET /call/{room_name}/status
 
-Get the status of a call by room name.
+Retrieves call status and participant information.
 
 **Response:**
 ```json
@@ -110,91 +147,29 @@ Get the status of a call by room name.
   "room_name": "outbound-1234567890",
   "status": "active",
   "num_participants": 2,
-  "participants": [
-    {
-      "identity": "+1234567890",
-      "name": "Caller",
-      "state": "ACTIVE"
-    }
-  ]
+  "participants": [...]
 }
 ```
 
 ### POST /call/{room_name}/hangup
 
-Hang up a call by deleting the room.
+Terminates an active call.
 
-**Response:**
-```json
-{
-  "status": "success",
-  "message": "Call in room outbound-1234567890 has been hung up"
-}
-```
+## 🔧 Technical Details
 
-## Example Usage
+### Agent Configuration
 
-### Make an Outbound Call
+- **Model**: Gemini 2.0 Flash Experimental
+- **Voice**: Puck (configurable)
+- **Dispatch**: Explicit agent dispatch for telephony reliability
+- **Noise Cancellation**: BVCTelephony for optimal call quality
 
-```bash
-curl -X POST "http://localhost:8000/call" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "phone_number": "+1234567890",
-    "sip_number": "+15555551234"
-  }'
-```
+### Error Handling
 
-> **Note**: The `sip_number` (caller ID) must be a valid Twilio phone number (DID) that you own, or a verified caller ID in your Twilio account. If not provided, it will use the `SIP_NUMBER` environment variable.
+- Comprehensive error handling for SIP connection failures
+- Graceful shutdown on errors
+- Detailed error messages for debugging
 
-### Check Call Status
-
-```bash
-curl "http://localhost:8000/call/outbound-1234567890/status"
-```
-
-### Hang Up a Call
-
-```bash
-curl -X POST "http://localhost:8000/call/outbound-1234567890/hangup"
-```
-
-## Architecture
-
-1. **LiveKit Agent** (`agent.py`): Uses Gemini Live API for speech-to-speech conversation
-2. **API Server** (`server.py`): REST API to trigger calls and manage call lifecycle
-3. **Twilio SIP Integration**: Outbound trunk configured to route calls through Twilio
-4. **Agent Dispatch**: Explicit agent dispatch ensures agent only joins when explicitly called
-
-## How It Works
-
-1. API receives a call request with a phone number
-2. API creates a new room and dispatches the agent to it
-3. Agent creates a SIP participant to make the outbound call
-4. Agent waits for the call to be answered
-5. Agent starts a session with Gemini Live API
-6. Agent greets the caller and begins conversation
-7. Conversation continues until call ends
-
-## Configuration
-
-### Agent Name
-
-The agent is configured with an explicit name (`outbound-caller-agent`) which:
-- Disables automatic dispatch (agent won't auto-join rooms)
-- Ensures agent only joins when explicitly dispatched via Agent Dispatch API
-- Required for telephony to prevent agents from joining rooms unexpectedly
-
-### Gemini Live API
-
-The agent uses Gemini Live API (`gemini-2.0-flash-exp`) for direct speech-to-speech conversation:
-- No separate STT/TTS pipeline needed
-- Natural, low-latency conversation
-- Voice: "Puck" (can be changed in `agent.py`)
-
-
-
-## License
+## 📝 License
 
 MIT
-
